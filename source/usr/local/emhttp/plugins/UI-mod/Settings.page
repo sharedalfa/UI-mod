@@ -1,0 +1,82 @@
+Menu="Utilities"
+Title="UI Modifications"
+Icon="puzzle-piece"
+---
+<?php
+$plugin = 'UI-mod';
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
+// Get current settings
+$cfg = parse_plugin_cfg($plugin);
+$enabled = $cfg['ENABLED'] ?? 'yes';
+$clickableLinks = $cfg['CLICKABLE_LINKS'] ?? 'yes';
+
+// Helper function to parse plugin configuration
+function parse_plugin_cfg($plugin) {
+    $plugincfg = [];
+    $cfgFile = "/boot/config/plugins/$plugin/$plugin.cfg";
+    
+    if (file_exists($cfgFile)) {
+        $cfg = file($cfgFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        foreach ($cfg as $line) {
+            // Skip comments
+            if (preg_match('/^#/', $line)) continue;
+            
+            // Parse key-value pairs
+            if (preg_match('/^(.+?)="(.+?)"$/', $line, $matches)) {
+                $plugincfg[$matches[1]] = $matches[2];
+            }
+        }
+    }
+    
+    return $plugincfg;
+}
+?>
+
+<form markdown="1" method="POST" action="/update.php" target="progressFrame">
+<input type="hidden" name="#file" value="UI-mod/UI-mod.cfg">
+<input type="hidden" name="#include" value="plugins/UI-mod/include/update.php">
+
+Enable UI Modifications Plugin:
+: <select name="ENABLED" size="1">
+  <?= mk_option($enabled, 'yes', 'Yes') ?>
+  <?= mk_option($enabled, 'no', 'No') ?>
+  </select>
+
+<blockquote class="inline_help">
+Enable or disable all UI modifications.
+</blockquote>
+
+Enable Clickable Links:
+: <select name="CLICKABLE_LINKS" size="1">
+  <?= mk_option($clickableLinks, 'yes', 'Yes') ?>
+  <?= mk_option($clickableLinks, 'no', 'No') ?>
+  </select>
+
+<blockquote class="inline_help">
+When enabled, all IP:port combinations will be converted to clickable links that open in a new tab.
+</blockquote>
+
+&nbsp;
+: <input type="submit" name="#default" value="Default">
+: <input type="submit" name="#apply" value="Apply"><input type="button" value="Done" onclick="done()">
+</form>
+
+<script>
+function done() {
+  parent.location.reload();
+}
+</script>
+
+<br>
+<div class="title">About UI Modifications Plugin</div>
+<div markdown="1" class="status">
+This plugin provides various UI enhancements for the UNRAID web interface.
+
+**Current Features:**
+- **Clickable Links**: Converts IP:port combinations into clickable links that open in a new tab.
+  - Example: 192.168.1.100:8080 → [192.168.1.100:8080](http://192.168.1.100:8080)
+  - Example: [fe80::1]:8080 → [[fe80::1]:8080](http://[fe80::1]:8080)
+
+Version: 1.0.0
+</div> 

@@ -1,0 +1,72 @@
+<?xml version='1.0' standalone='yes'?>
+<!DOCTYPE PLUGIN [
+<!ENTITY name      "UI-mod">
+<!ENTITY author    "Akash">
+<!ENTITY version   "1.0.0">
+<!ENTITY md5       "">
+<!ENTITY launch    "Settings/UIModifications">
+<!ENTITY pluginURL "https://raw.githubusercontent.com/salfalfa/&name;/master/&name;.plg">
+<!ENTITY source    "/boot/config/plugins/&name;/&name;">
+<!ENTITY packages  "/boot/config/plugins/&name;/packages">
+]>
+
+<PLUGIN name="&name;" author="&author;" version="&version;" launch="&launch;" pluginURL="&pluginURL;" min="6.9.0">
+
+<CHANGES>
+###2023.03.15
+- Initial release
+</CHANGES>
+
+<FILE Name="/boot/config/plugins/&name;/&name;.cfg">
+<INLINE>
+# Plugin configuration:
+ENABLED="yes"
+CLICKABLE_LINKS="yes"
+</INLINE>
+</FILE>
+
+<FILE Run="/bin/bash">
+<INLINE>
+# Create plugin directory
+mkdir -p /boot/config/plugins/&name;
+
+# Create directory to store the plugin scripts
+mkdir -p /usr/local/emhttp/plugins/&name;
+</INLINE>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/plugins/&name;/&name;.php">
+<INLINE>
+&lt;?php
+$plugin = "&name;";
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$translations = file_exists("$docroot/webGui/include/Translations.php");
+require_once "$docroot/plugins/$plugin/include/Legacy.php";
+?>
+</INLINE>
+</FILE>
+
+<FILE Name="/tmp/&name;-install" Run="/bin/bash">
+<INLINE>
+#!/bin/bash
+# Plugin installation script
+plugin="&name;"
+
+# Copy plugin files to emhttp directory
+cp -r /boot/config/plugins/$plugin/source/* /usr/local/emhttp/plugins/$plugin/
+
+# Create plugin directory structure
+mkdir -p /usr/local/emhttp/plugins/$plugin/include
+
+# Set permissions
+chmod 755 /usr/local/emhttp/plugins/$plugin/*.php
+chmod 755 /usr/local/emhttp/plugins/$plugin/include/*.php
+chmod 755 /usr/local/emhttp/plugins/$plugin/include/*.js
+
+# Cleanup
+rm -f /tmp/$plugin-install
+exit 0
+</INLINE>
+</FILE>
+
+</PLUGIN> 
