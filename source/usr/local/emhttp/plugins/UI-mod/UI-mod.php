@@ -15,7 +15,7 @@ $enabled = $cfg['ENABLED'] ?? 'yes';
 
 if ($enabled === 'yes') {
     // Add Clickable Links feature
-    if ($cfg['CLICKABLE_LINKS'] ?? 'yes' === 'yes') {
+    if (($cfg['CLICKABLE_LINKS'] ?? 'yes') === 'yes') {
         echo '<link type="text/css" rel="stylesheet" href="'.$pluginPath.'/include/clickable-links.css">'."\n";
         echo '<script type="text/javascript" src="'.$pluginPath.'/include/clickable-links.js"></script>'."\n";
     }

@@ -9,7 +9,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Set up a MutationObserver to handle dynamically added content
     const observer = new MutationObserver(function(mutations) {
-        makeLinksClickable();
+        // Check if any of the mutations are in the Docker tab
+        const shouldProcess = mutations.some(mutation => {
+            // Check if the mutation is in the Docker tab or affects the entire page
+            return mutation.target.closest('#docker_view') || 
+                   mutation.target.id === 'docker_view' ||
+                   mutation.target.id === 'content' ||
+                   mutation.target === document.body;
+        });
+        
+        if (shouldProcess) {
+            makeLinksClickable();
+        }
     });
     
     // Start observing the document with the configured parameters
@@ -17,10 +28,15 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function makeLinksClickable() {
-    // Find all text nodes in the document
+    // Find all text nodes in the document, with priority to Docker tab
     const textNodes = [];
+    
+    // First try to target the Docker tab specifically
+    const dockerView = document.getElementById('docker_view');
+    const rootElement = dockerView || document.body;
+    
     const walker = document.createTreeWalker(
-        document.body,
+        rootElement,
         NodeFilter.SHOW_TEXT,
         null,
         false
@@ -51,24 +67,25 @@ function makeLinksClickable() {
     
     // Regular expression to match IP:port
     // This matches both IPv4 and IPv6 addresses with port numbers
-    const ipPortRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):([0-9]{1,5})\b|\[([0-9a-fA-F:]+)\]:([0-9]{1,5})\b/g;
+    // Improved to be more precise and catch more variations
+    const ipPortRegex = /\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?::([0-9]{1,5}))\b|\[([0-9a-fA-F:]+)\](?::([0-9]{1,5}))\b/g;
     
     // Process each text node
     textNodes.forEach(function(textNode) {
         const text = textNode.textContent;
         
         // Skip if no match
-        if (!ipPortRegex.test(text)) {
+        if (!text.match(ipPortRegex)) {
             return;
         }
-        
-        // Reset regex
-        ipPortRegex.lastIndex = 0;
         
         // Create a document fragment to hold the new content
         const fragment = document.createDocumentFragment();
         let lastIndex = 0;
         let match;
+        
+        // Reset regex for this iteration
+        ipPortRegex.lastIndex = 0;
         
         // Process each match
         while ((match = ipPortRegex.exec(text)) !== null) {
@@ -108,6 +125,11 @@ function makeLinksClickable() {
         }
         
         // Replace the text node with the fragment
-        textNode.parentNode.replaceChild(fragment, textNode);
+        if (textNode.parentNode) {
+            textNode.parentNode.replaceChild(fragment, textNode);
+        }
     });
+    
+    // Log that the function has run
+    console.log('UI-mod: IP:PORT links made clickable');
 } 
